@@ -210,3 +210,21 @@ body.tv { overflow: hidden; }
   body.tv { overflow: auto; }
   .play { grid-template-columns: 1fr; grid-template-rows: 60vh auto; height: auto; }
 }
+
+/* ───────── 모두 도착 ───────── */
+.all-board { background: #E3F2FD; border-radius: 16px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.ab-head { font-family: var(--font-title); font-size: 24px; }
+.ab-head b { font-weight: normal; color: var(--primary-dark); font-size: 30px; }
+.ab-bar { height: 16px; background: #fff; border-radius: 999px; overflow: hidden; }
+.ab-bar i { display: block; height: 100%; background: linear-gradient(90deg, #4FC3F7, var(--primary)); border-radius: 999px; transition: width .6s; }
+.ab-cheer { font-family: var(--font-title); font-size: 20px; color: #E65100; animation: blink 1.2s infinite; }
+.all-done { position: fixed; inset: 0; z-index: 80; background: linear-gradient(rgba(129,212,250,.96), rgba(225,245,254,.97)); display: grid; place-items: center; overflow: hidden; padding: 20px; }
+.ad-box { position: relative; z-index: 1; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 1500px; }
+.ad-title { font-family: var(--font-title); font-size: clamp(44px, 6vw, 96px); color: var(--primary-dark); animation: pop .6s ease; }
+.ad-sub { font-family: var(--font-title); font-size: clamp(24px, 2.6vw, 40px); color: var(--ink); }
+.ad-crowd { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; max-height: 58vh; overflow: hidden; }
+.ad-friend { display: flex; flex-direction: column; align-items: center; animation: cheer .9s ease-in-out infinite; }
+.ad-friend span { font-family: var(--font-title); font-size: 22px; background: #fff; border-radius: 999px; padding: 0 10px; margin-top: -4px; }
+@keyframes cheer { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-16px) rotate(4deg); } }
+.ad-confetti { position: absolute; inset: 0; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .ad-friend, .ab-cheer { animation: none; } }

@@ -92,7 +92,7 @@ window.GAME_CONFIG = {
       wrongRule: 'back',     // 틀리면 'back' 한 칸 뒤로 | 'stay' 제자리
       restSec: 2,            // 틀린 뒤 쉬는 시간(초). 0이면 쉬지 않음
       timeLimitSec: 0,       // 제한 시간(초): 0 없음 | 180 | 300
-      endRule: 'top3',       // 'top3' 3등까지 도착하면 끝 | 'first' 1등 도착하면 바로 끝
+      endRule: 'all',        // 'all' 모두 도착하면 다 같이 박수 엔딩 | 'top3' 3등까지 도착하면 끝 | 'first' 1등 도착하면 바로 끝
       lateJoin: true,        // 게임 중에 들어온 학생도 출발점에서 참여
     },
     danChoices: [2, 3, 4, 5, 6, 7, 8, 9],   // TV에서 고를 수 있는 단(19단까지 넣을 수 있음)

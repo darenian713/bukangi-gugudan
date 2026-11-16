@@ -154,6 +154,8 @@ export function teamMvp(players, teamId) {
 
 /**
  * 게임이 끝났는지 판단.
+ *  - 'all'(모두 도착): 접속해 있는 친구가 모두 바다에 도착하면 종료(개인전·팀전 같음).
+ *     와이파이가 끊겨 회색인 친구는 기다리지 않음(한 명 때문에 끝나지 않는 일 방지)
  *  - 개인전: endRule 'first' → 1명 도착 / 'top3' → min(3, 인원)명 도착
  *  - 팀전:   'first' → 1팀 도착 / 'top3' → min(3, 팀수-1)팀 도착 (남은 팀 순위는 자동 결정)
  *  - 제한 시간이 지나면 종료
@@ -163,6 +165,10 @@ export function isGameOver(room, now) {
   if (room.endsAt && now >= room.endsAt) return 'time';
   const players = Object.values(room.players || {}).filter((p) => p && p.name);
   if (!players.length) return null;
+  if (s.endRule === 'all') {
+    const { arrived, waiting } = arrivalStatus(room);
+    return arrived > 0 && waiting.length === 0 ? 'all' : null;
+  }
   if (s.mode === 'team') {
     const teamIds = Object.keys(room.teams || {});
     const done = teamIds.filter((t) => room.teams[t].finishedRank).length;
@@ -172,4 +178,22 @@ export function isGameOver(room, now) {
   const done = players.filter((p) => p.finishedRank).length;
   const need = s.endRule === 'first' ? 1 : Math.min(3, players.length);
   return done >= need ? 'arrived' : null;
+}
+
+/**
+ * 모두 도착 진행 상황: arrived(도착한 수), active(기다리는 대상 = 접속 중이거나 이미 도착), waiting(아직 가는 중인 접속자 key 목록)
+ * presence가 false(끊김)인 친구는 기다리지 않음
+ */
+export function arrivalStatus(room) {
+  const presence = room.presence || {};
+  let arrived = 0, active = 0;
+  const waiting = [];
+  for (const [k, p] of Object.entries(room.players || {})) {
+    if (!p || !p.name) continue;
+    if (p.finishedRank) { arrived++; active++; continue; }
+    if (presence[k] === false) continue;
+    active++;
+    waiting.push(k);
+  }
+  return { arrived, active, waiting };
 }

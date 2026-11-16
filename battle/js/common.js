@@ -127,6 +127,22 @@ export const sfx = {
   tick() { tone(660, 0, 0.12, 'sine', 0.15); },
   go() { tone(990, 0, 0.35, 'triangle', 0.22); },
   key() { tone(520, 0, 0.04, 'sine', 0.06); },
+  /** 여럿이 치는 박수(잡음을 짧게 끊어 여러 번) — 약 seconds초 */
+  clap(seconds = 4) {
+    const c = ctx(); if (!c || !soundOn) return;
+    const len = Math.floor(c.sampleRate * 0.06);
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    const n = Math.floor(seconds * 22);
+    for (let i = 0; i < n; i++) {
+      const src = c.createBufferSource(); src.buffer = buf;
+      const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1000 + Math.random() * 1600; f.Q.value = 0.8;
+      const g = c.createGain(); g.gain.value = 0.25 + Math.random() * 0.25;
+      src.connect(f).connect(g).connect(c.destination);
+      src.start(c.currentTime + (i / n) * seconds + Math.random() * 0.04);
+    }
+  },
   fanfare() { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.12, 0.3, 'triangle', 0.2)); tone(1047, 0.5, 0.6, 'triangle', 0.2); },
   join() { tone(700, 0, 0.08); tone(1050, 0.07, 0.1); },
   landmark() { tone(784, 0, 0.12, 'sine', 0.12); tone(988, 0.1, 0.16, 'sine', 0.12); },

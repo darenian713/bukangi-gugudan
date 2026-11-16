@@ -2,7 +2,7 @@
 import { initFirebase, ensureAuth, serverNow, isConfigured } from './fb.js';
 import { ref, get, set, onValue, onDisconnect, serverTimestamp } from './fb-sdk.js';
 import { NAME_MAX, PIN_FAIL_LIMIT, PIN_LOCK_SEC, PLAYER_COLORS, TEAM_PRESETS, MAX_DIGITS, SCHOOL_MARK } from './game-config.js';
-import { rankPlayers, rankTeams, accuracy } from './referee.js';
+import { rankPlayers, rankTeams, accuracy, arrivalStatus } from './referee.js';
 import {
   $, show, normalizeName, charLength, toNameKey, fromNameKey, pinHash, escapeHtml, charBadge, sfx, vibrate,
 } from './common.js';
@@ -178,7 +178,7 @@ function closed() { cleanup(); notice('선생님이 방을 닫았어요. 고마�
 function cleanup() {
   unsubs.splice(0).forEach((u) => u());
   sessionStorage.removeItem(SS_SESSION);
-  me = null; key = null; meSeen = false;
+  me = null; key = null; meSeen = false; watchingAll = false;
 }
 function notice(t) { $('#noticeText').textContent = t; show('notice'); $('#countdown').hidden = true; }
 $('#btnRestart').onclick = () => { location.href = location.pathname + (location.search.includes('emu=1') ? '?emu=1' : ''); };
@@ -315,13 +315,30 @@ async function submit() {
 }
 
 // ───────── 5~6. 도착 / 결과 ─────────
+// '모두 도착' 방식에서 먼저 온 친구에게 "아직 오는 친구 N명"을 보여 주려고, 도착한 뒤에만 전체 목록을 구독
+let watchingAll = false;
+function watchClass() {
+  if (watchingAll) return;
+  watchingAll = true;
+  unsubs.push(onValue(ref(db, `rooms/${code}/players`), (snap) => { R.players = snap.val() || {}; if (me?.finishedRank) showArrived(); }));
+  unsubs.push(onValue(ref(db, `rooms/${code}/presence`), (snap) => { R.presence = snap.val() || {}; if (me?.finishedRank) showArrived(); }));
+}
+
 function showArrived() {
+  if (R.status !== 'playing') return;
   show('arrived');
   $('#arrOwl').innerHTML = charBadge({ color: myColor(), scarf: myTeam()?.color }, 160);
-  $('#arrTitle').textContent = `🌊 ${me.finishedRank}등으로 도착!`;
-  $('#arrText').textContent = R.settings?.mode === 'team'
-    ? '멋져요! 우리 팀 친구들을 응원해요 📣'
-    : `정답 ${me.correct || 0}개! 다른 친구들을 응원해요.`;
+  if (R.settings?.endRule === 'all') {
+    watchClass();
+    const left = R.players ? arrivalStatus({ players: R.players, presence: R.presence }).waiting.length : null;
+    $('#arrTitle').textContent = `🌊 ${me.finishedRank}번째로 바다에 왔어요!`;
+    $('#arrText').textContent = left ? `아직 오고 있는 친구 ${left}명! 다 같이 응원해요 📣` : '친구들을 응원해요 📣 모두 오면 다 같이 박수!';
+  } else {
+    $('#arrTitle').textContent = `🌊 ${me.finishedRank}등으로 도착!`;
+    $('#arrText').textContent = R.settings?.mode === 'team'
+      ? '멋져요! 우리 팀 친구들을 응원해요 📣'
+      : `정답 ${me.correct || 0}개! 다른 친구들을 응원해요.`;
+  }
   if (handledResult !== 'arrived') { handledResult = 'arrived'; sfx.fanfare(); vibrate([100, 50, 100, 50, 200]); }
 }
 
@@ -335,6 +352,15 @@ async function showDone() {
   doneShown = true;
   try {
     const all = (await get(ref(db, `rooms/${code}/players`))).val() || {};
+    if (R.settings?.endRule === 'all') {
+      const presence = (await get(ref(db, `rooms/${code}/presence`))).val() || {};
+      const st = arrivalStatus({ players: all, presence });
+      if (st.arrived > 0 && st.waiting.length === 0) {
+        $('#doneTitle').textContent = '🎉 우리 반 모두 바다에 도착! 👏';
+        sfx.fanfare(); setTimeout(() => sfx.clap(3), 600); vibrate([60, 60, 60, 60, 60]);
+        return;
+      }
+    }
     const ranked = rankPlayers(all);
     const myRank = ranked.findIndex((p) => p.key === key) + 1;
     let title = `${myRank}등! 수고했어요`;

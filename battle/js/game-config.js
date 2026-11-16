@@ -15,7 +15,7 @@ export const SOLO_URL = '../';
 
 export const GAME_DEFAULTS = {
   mode: 'solo', teamCount: 2, dans: [2, 3, 4, 5, 6, 7, 8, 9], goal: 20, wrongRule: 'back',
-  restSec: 2, timeLimitSec: 0, endRule: 'top3', lateJoin: true,
+  restSec: 2, timeLimitSec: 0, endRule: 'all', lateJoin: true,
   ...(B.defaults || {}),
   minMul: B.minMul ?? 1,
   maxMul: B.maxMul ?? 9,

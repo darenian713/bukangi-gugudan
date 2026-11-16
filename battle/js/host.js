@@ -9,7 +9,7 @@ import {
 } from './game-config.js';
 import {
   judge, nextQuestionPatch, assignTeams, smallestTeam, teamAverages, rankPlayers, rankTeams, teamMvp,
-  isGameOver, accuracy,
+  isGameOver, accuracy, arrivalStatus,
 } from './referee.js';
 import { BusanMap } from './map-view.js';
 import {
@@ -459,6 +459,9 @@ function renderManage() {
 function render() {
   const s = settings();
   if (room.status !== lastStatus) {
+    // 게임 중 → 끝(모두 도착)으로 바뀌는 순간에만 다 같이 박수 엔딩(새로고침 때는 다시 안 띄움)
+    if (lastStatus === 'playing' && room.status === 'finished' && room.endReason === 'all') showAllDone();
+    if (room.status !== 'finished') hideAllDone();
     lastStatus = room.status;
     prevPlayers = null; prevTeams = null;
   }
@@ -549,11 +552,11 @@ function renderPlay(s) {
           landmarkToast(`📍 ${p.name} — ${lm}`);
         }
       }
-      if (p.finishedRank && !before.finishedRank) celebrate(`${p.name} 도착!`, `${p.finishedRank}등!`, PLAYER_COLORS[p.color], team(p)?.color);
+      if (p.finishedRank && !before.finishedRank) celebrate(`${p.name} 도착!`, s.endRule === 'all' ? `${p.finishedRank}번째로 바다에 왔어요` : `${p.finishedRank}등!`, PLAYER_COLORS[p.color], team(p)?.color);
     }
     if (s.mode === 'team' && prevTeams) {
       for (const [id, t] of Object.entries(room.teams || {})) {
-        if (t.finishedRank && !prevTeams[id]?.finishedRank) celebrate(`${t.name} 도착!`, `${t.finishedRank}등!`, t.color, '#fff');
+        if (t.finishedRank && !prevTeams[id]?.finishedRank) celebrate(`${t.name} 도착!`, s.endRule === 'all' ? '팀 모두 바다에 왔어요' : `${t.finishedRank}등!`, t.color, '#fff');
       }
     }
   }
@@ -580,7 +583,21 @@ function renderPlay(s) {
   } else {
     $('#teamBoard').innerHTML = '';
   }
+  renderAllBoard(s);
   renderTimer(serverNow());
+}
+
+/** '모두 도착' 방식: 도착한 친구 수와, 거의 다 왔을 때 남은 친구 이름(응원용) */
+function renderAllBoard(s) {
+  const box = $('#allBoard');
+  box.hidden = s.endRule !== 'all';
+  if (box.hidden) return;
+  const { arrived, active, waiting } = arrivalStatus(room);
+  const names = waiting.map((k) => players()[k]?.name).filter(Boolean);
+  const cheer = arrived > 0 && names.length > 0 && names.length <= 3
+    ? `<div class="ab-cheer">📣 ${names.map(escapeHtml).join(', ')} 친구를 다 같이 응원해요!</div>` : '';
+  box.innerHTML = `<div class="ab-head">🌊 바다 도착 <b>${arrived}</b> / ${active}명</div>
+    <div class="ab-bar"><i style="width:${active ? (arrived / active) * 100 : 0}%"></i></div>${cheer}`;
 }
 
 function renderTimer(now) {
@@ -621,7 +638,7 @@ function nextCelebrate() {
     <div class="cel-title">${escapeHtml(c.title)}</div><div class="cel-sub">${escapeHtml(c.sub)}</div></div>${confetti()}`;
   el.hidden = false;
   sfx.fanfare();
-  setTimeout(nextCelebrate, 2600);
+  setTimeout(nextCelebrate, celebrateQueue.length ? 1500 : 2600);
 }
 function confetti() {
   const colors = ['#f59e0b', '#ef4444', '#3b82f6', '#22c55e', '#ec4899', '#8b5cf6'];
@@ -629,12 +646,32 @@ function confetti() {
     `<i class="cf" style="left:${Math.random() * 100}%;background:${colors[i % colors.length]};animation-delay:${Math.random() * 0.6}s;animation-duration:${1.6 + Math.random()}s"></i>`).join('');
 }
 
+let allDoneTimer = null;
+function showAllDone() {
+  const ps = Object.values(players()).filter((p) => p.finishedRank).sort((a, b) => a.finishedRank - b.finishedRank);
+  const teamOf = (p) => (settings().mode === 'team' ? TEAM_PRESETS.find((t) => t.id === p.team) : null);
+  $('#adCrowd').innerHTML = ps.map((p, i) => `<div class="ad-friend" style="animation-delay:${(i % 6) * 0.12}s">
+      ${charBadge({ color: PLAYER_COLORS[p.color] || '#999', scarf: teamOf(p)?.color }, ps.length > 20 ? 64 : 84)}<span>${escapeHtml(p.name)}</span></div>`).join('');
+  const colors = ['#FF5252', '#FFD740', '#69F0AE', '#40C4FF', '#E040FB', '#FF8A65', '#1E88E5'];
+  $('#adConfetti').innerHTML = Array.from({ length: 90 }, (_, i) =>
+    `<i class="cf" style="left:${Math.random() * 100}%;background:${colors[i % colors.length]};animation-delay:${Math.random() * 2.5}s;animation-duration:${2.2 + Math.random() * 1.6}s"></i>`).join('');
+  celebrateQueue.length = 0;
+  $('#celebrate').hidden = true;
+  $('#allDone').hidden = false;
+  sfx.fanfare();
+  setTimeout(() => sfx.clap(4.5), 700);
+  clearTimeout(allDoneTimer);
+  allDoneTimer = setTimeout(hideAllDone, 15000);
+}
+function hideAllDone() { clearTimeout(allDoneTimer); $('#allDone').hidden = true; }
+$('#btnAllDone').onclick = hideAllDone;
+
 function renderResult(s) {
   const ps = players();
   const ranked = rankPlayers(ps);
   const tm = (p) => TEAM_PRESETS.find((t) => t.id === p.team);
-  const reason = { time: '⏰ 시간 끝!', teacher: '게임 끝!', arrived: '🌊 바다 도착!' }[room.endReason] || '게임 끝!';
-  $('#resultTitle').textContent = `🏆 ${reason}`;
+  const reason = { time: '⏰ 시간 끝!', teacher: '게임 끝!', arrived: '🌊 바다 도착!', all: '모두 함께 바다에 도착!' }[room.endReason] || '게임 끝!';
+  $('#resultTitle').textContent = room.endReason === 'all' ? `🎉 ${reason} 👏` : `🏆 ${reason}`;
   const steps = [1, 0, 2]; // 2등, 1등, 3등 순으로 배치
   if (s.mode === 'team') {
     const rt = rankTeams(room.teams, ps, teamIds());

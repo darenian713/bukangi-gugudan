@@ -48,7 +48,7 @@
         <div class="set-row"><label>제한 시간</label>
           <div class="seg" data-set="timeLimitSec"></div></div>
         <div class="set-row"><label>끝나는 때</label>
-          <div class="seg" data-set="endRule"><button data-v="top3">3등까지 도착</button><button data-v="first">1등 도착 즉시</button></div></div>
+          <div class="seg" data-set="endRule"><button data-v="all">모두 도착 👏</button><button data-v="top3">3등까지 도착</button><button data-v="first">1등 도착 즉시</button></div></div>
         <div class="set-row"><label>중간 참여</label>
           <div class="seg" data-set="lateJoin"><button data-v="true">허용</button><button data-v="false">막기</button></div></div>
       </div>
@@ -81,6 +81,7 @@
         <div class="mini-room">방 <b id="playRoom"></b></div>
         <div class="timer" id="timer"></div>
       </div>
+      <div id="allBoard" class="all-board" hidden aria-live="polite"></div>
       <div id="teamBoard" class="team-board"></div>
       <h3 class="rank-title">실시간 순위</h3>
       <ol id="rankList" class="rank-list"></ol>
@@ -109,6 +110,15 @@
   <!-- 겹 화면 -->
   <div id="countdown" class="countdown" hidden><div id="countNum">3</div></div>
   <div id="celebrate" class="celebrate" hidden></div>
+  <div id="allDone" class="all-done" hidden role="dialog" aria-label="모두 도착 축하">
+    <div class="ad-box">
+      <div class="ad-title">🎉 모두 바다에 도착했어요!</div>
+      <div class="ad-sub">👏 서로서로 박수! 끝까지 함께 와 줘서 고마워요</div>
+      <div class="ad-crowd" id="adCrowd"></div>
+      <button type="button" class="btn big primary" id="btnAllDone" aria-label="결과 보기">결과 보기 ▶</button>
+    </div>
+    <div class="ad-confetti" id="adConfetti"></div>
+  </div>
   <dialog id="manageDlg" class="manage-dlg">
     <h3>학생 관리</h3>
     <div id="manageList" class="lobby-list"></div>
