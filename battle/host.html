@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>부캉이 구구단 대결 — 진행 화면</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+  <link rel="stylesheet" href="css/battle.css">
+</head>
+<body class="tv">
+  <div class="brand-badge" data-school>금곡초등학교 · GRIP</div>
+
+  <!-- 1. 방 만들기 -->
+  <section data-screen="create" class="center-screen">
+    <h1 class="title">🦉 부캉이 구구단 <span>실시간 대결</span></h1>
+    <p class="lead">교실 TV에 이 화면을 띄우고 방을 만들어 주세요.</p>
+    <div class="row gap">
+      <button id="btnCreate" type="button" aria-label="새 방 만들기" class="btn big primary">방 만들기</button>
+      <button id="btnResume" type="button" aria-label="이전 방 이어서 하기" class="btn big" hidden>이전 방 이어서 하기</button>
+    </div>
+    <p id="createMsg" class="msg"></p>
+    <p class="small"><a href="../">← 혼자 하기 첫 화면</a></p>
+  </section>
+
+  <!-- 2. 대기(입장 현황 + 설정) -->
+  <section data-screen="lobby" class="lobby" hidden>
+    <div class="lobby-left">
+      <div class="room-card">
+        <div class="room-label">방 번호</div>
+        <div class="room-code" id="roomCode">----</div>
+        <div id="qr" class="qr"></div>
+        <div class="join-url" id="joinUrl"></div>
+      </div>
+      <div class="settings card">
+        <h3>게임 설정</h3>
+        <div class="set-row"><label>대결 방식</label>
+          <div class="seg" data-set="mode"><button data-v="solo">개인전</button><button data-v="team">팀전</button></div></div>
+        <div class="set-row" id="rowTeamCount"><label>팀 수</label>
+          <div class="seg" data-set="teamCount"><button data-v="2">2팀</button><button data-v="3">3팀</button><button data-v="4">4팀</button></div></div>
+        <div class="set-row"><label>출제 단</label><div class="dans" id="dans"></div></div>
+        <div class="set-row"><label>도착까지</label>
+          <div class="seg" data-set="goal"></div></div>
+        <div class="set-row"><label>틀리면</label>
+          <div class="seg" data-set="wrongRule"><button data-v="back">한 칸 뒤로</button><button data-v="stay">제자리</button></div>
+          <div class="seg" data-set="restSec"><button data-v="2">2초 쉬기</button><button data-v="0">쉬기 끔</button></div></div>
+        <div class="set-row"><label>제한 시간</label>
+          <div class="seg" data-set="timeLimitSec"></div></div>
+        <div class="set-row"><label>끝나는 때</label>
+          <div class="seg" data-set="endRule"><button data-v="top3">3등까지 도착</button><button data-v="first">1등 도착 즉시</button></div></div>
+        <div class="set-row"><label>중간 참여</label>
+          <div class="seg" data-set="lateJoin"><button data-v="true">허용</button><button data-v="false">막기</button></div></div>
+      </div>
+    </div>
+    <div class="lobby-right">
+      <div class="lobby-head">
+        <h2>입장한 친구 <span id="playerCount">0</span>명</h2>
+        <div class="row gap">
+          <button id="btnShuffle" type="button" aria-label="팀 다시 섞기" class="btn" hidden>🔀 다시 섞기</button>
+          <button id="btnStart" type="button" aria-label="게임 시작" class="btn big primary" disabled>시작!</button>
+        </div>
+      </div>
+      <p class="hint" id="lobbyHint">학생 태블릿에서 주소에 들어가 방 번호를 입력해요.</p>
+      <div id="lobbyList" class="lobby-list"></div>
+      <div class="row gap end">
+        <button id="btnSound" type="button" aria-label="소리 켜기 끄기" class="btn small">🔊 소리 켬</button>
+        <button id="btnClose" type="button" aria-label="방 닫기, 기록 모두 지우기" class="btn small danger">방 닫기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 게임 중 -->
+  <section data-screen="play" class="play" hidden>
+    <div class="map-wrap">
+      <svg id="map" class="map" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="landmarkToast" class="landmark-toast" hidden></div>
+    </div>
+    <aside class="side">
+      <div class="side-top">
+        <div class="mini-room">방 <b id="playRoom"></b></div>
+        <div class="timer" id="timer"></div>
+      </div>
+      <div id="teamBoard" class="team-board"></div>
+      <h3 class="rank-title">실시간 순위</h3>
+      <ol id="rankList" class="rank-list"></ol>
+      <div class="side-bottom">
+        <button id="btnManage" type="button" aria-label="학생 관리 열기" class="btn small">학생 관리</button>
+        <button id="btnEnd" type="button" aria-label="게임 지금 끝내기" class="btn small danger">게임 끝내기</button>
+      </div>
+    </aside>
+  </section>
+
+  <!-- 4. 결과 -->
+  <section data-screen="result" class="result" hidden>
+    <h1 class="title" id="resultTitle">🏆 결과</h1>
+    <div id="podium" class="podium"></div>
+    <div id="teamResult"></div>
+    <table class="result-table">
+      <thead><tr><th>순위</th><th>이름</th><th id="thTeam">팀</th><th>도착 순서 / 이동 칸</th><th>정답 수</th><th>정답률</th></tr></thead>
+      <tbody id="resultBody"></tbody>
+    </table>
+    <div class="row gap center">
+      <button id="btnAgain" type="button" aria-label="같은 방에서 다시 하기" class="btn big primary">같은 방에서 다시 하기</button>
+      <button id="btnClose2" type="button" aria-label="방 닫기, 기록 모두 지우기" class="btn big danger">방 닫기</button>
+    </div>
+  </section>
+
+  <!-- 겹 화면 -->
+  <div id="countdown" class="countdown" hidden><div id="countNum">3</div></div>
+  <div id="celebrate" class="celebrate" hidden></div>
+  <dialog id="manageDlg" class="manage-dlg">
+    <h3>학생 관리</h3>
+    <div id="manageList" class="lobby-list"></div>
+    <form method="dialog"><button class="btn" aria-label="학생 관리 닫기">닫기</button></form>
+  </dialog>
+  <div id="toast" class="toast" hidden></div>
+  <!-- 설정·그림은 혼자 하기와 같은 파일을 씀 -->
+  <script src="../js/config.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/scenes.js"></script>
+  <script src="js/file-guard.js"></script>
+
+  <script type="module" src="js/host.js"></script>
+</body>
+</html>

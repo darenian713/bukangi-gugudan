@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#1E88E5">
+  <title>부캉이 구구단 대결 — 학생</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+  <link rel="stylesheet" href="css/battle.css">
+</head>
+<body class="pad">
+  <!-- 1. 방 번호 -->
+  <section data-screen="room" class="form-screen">
+    <p class="school-mark" data-school>금곡초등학교 · GRIP</p>
+    <h1 class="title small-title"><span class="title-sub">구구단</span>실시간 대결</h1>
+    <div class="hero-char" id="heroChar"></div>
+    <label class="field-label" for="inRoom">방 번호 4자리</label>
+    <input id="inRoom" class="field big-field" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="0000">
+    <button id="btnRoom" type="button" aria-label="방 번호 확인" class="btn big primary wide">다음</button>
+    <p id="roomMsg" class="msg"></p>
+  </section>
+
+  <!-- 2. 이름 + 비밀번호 -->
+  <section data-screen="name" class="form-screen" hidden>
+    <div class="room-chip">방 <b id="roomShow"></b> <button id="btnChangeRoom" type="button" aria-label="방 번호 바꾸기" class="link">바꾸기</button></div>
+    <label class="field-label" for="inName">이름 또는 별명</label>
+    <input id="inName" class="field" maxlength="12" autocomplete="off" placeholder="예) 별빛">
+    <p class="hint">실명 대신 별명을 써도 돼요. (최대 <span id="nameMax">6</span>글자)</p>
+    <label class="field-label" for="inPin">비밀번호 숫자 4자리</label>
+    <input id="inPin" class="field" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+    <p class="hint">다시 들어올 때 필요해요. 꼭 기억해요!</p>
+    <button id="btnJoin" type="button" aria-label="들어가기" class="btn big primary wide">들어가기</button>
+    <p id="nameMsg" class="msg"></p>
+  </section>
+
+  <!-- 3. 대기 -->
+  <section data-screen="wait" class="center-screen" hidden>
+    <div id="waitOwl"></div>
+    <h2 id="waitName" class="me-name"></h2>
+    <div id="waitTeam" class="team-pill" hidden></div>
+    <p class="lead" id="waitText">들어왔어요! 선생님이 시작할 때까지 기다려요.</p>
+  </section>
+
+  <!-- 4. 문제 -->
+  <section data-screen="play" class="play-student" hidden>
+    <div class="st-top">
+      <span id="stName" class="st-name"></span>
+      <div class="progress"><i id="stBar"></i><b id="stPos"></b></div>
+    </div>
+    <div class="q-card" id="qCard">
+      <div class="q" id="qText">7 × 8 = ?</div>
+      <div class="ans" id="ansText">&nbsp;</div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+    <div class="keypad" id="keypad" aria-label="숫자 키패드">
+      <button type="button" aria-label="1">1</button><button type="button" aria-label="2">2</button><button type="button" aria-label="3">3</button>
+      <button type="button" aria-label="4">4</button><button type="button" aria-label="5">5</button><button type="button" aria-label="6">6</button>
+      <button type="button" aria-label="7">7</button><button type="button" aria-label="8">8</button><button type="button" aria-label="9">9</button>
+      <button type="button" data-k="del" class="k-del" aria-label="지우기">⌫ 지우기</button><button type="button" aria-label="0">0</button><button type="button" data-k="ok" class="k-ok" aria-label="확인">확인</button>
+    </div>
+    <div class="rest" id="rest" hidden><div>잠깐 쉬어요</div><b id="restNum">2</b></div>
+  </section>
+
+  <!-- 5. 도착 -->
+  <section data-screen="arrived" class="center-screen celebrate-st" hidden>
+    <div id="arrOwl"></div>
+    <h1 class="title" id="arrTitle">바다 도착!</h1>
+    <p class="lead" id="arrText"></p>
+  </section>
+
+  <!-- 6. 결과 -->
+  <section data-screen="done" class="center-screen" hidden>
+    <div id="doneOwl"></div>
+    <h1 class="title" id="doneTitle">게임 끝!</h1>
+    <div class="stats" id="doneStats"></div>
+    <p class="lead">TV 화면을 봐요 📺</p>
+    <p class="school-mark" data-school></p>
+  </section>
+
+  <!-- 7. 안내(방 닫힘·내보내짐 등) -->
+  <section data-screen="notice" class="center-screen" hidden>
+    <h2 id="noticeText"></h2>
+    <button id="btnRestart" type="button" aria-label="처음으로" class="btn big primary">처음으로</button>
+  </section>
+
+  <div id="countdown" class="countdown" hidden><div id="countNum">3</div></div>
+  <div id="banner" class="banner" hidden></div>
+  <!-- 설정·그림은 혼자 하기와 같은 파일을 씀 -->
+  <script src="../js/config.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/scenes.js"></script>
+  <script src="js/file-guard.js"></script>
+
+  <script type="module" src="js/join.js"></script>
+</body>
+</html>

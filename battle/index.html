@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>부캉이 구구단 — 실시간 대결</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+  <link rel="stylesheet" href="css/battle.css">
+</head>
+<body class="pad">
+  <section class="center-screen">
+    <p class="school-mark" data-school>금곡초등학교 · GRIP</p>
+    <h1 class="title"><span class="title-sub">구구단</span>실시간 대결</h1>
+    <div class="hero-char" id="heroChar"></div>
+    <p class="lead">교실 TV는 방을 만들고, 친구들은 태블릿으로 들어와요.</p>
+    <div class="menu">
+      <a class="btn big primary" href="host.html" aria-label="선생님: 교실 TV에서 방 만들기">📺 선생님: 방 만들기</a>
+      <a class="btn big" href="join.html" aria-label="학생: 태블릿으로 방 들어가기">📱 학생: 방 들어가기</a>
+    </div>
+    <p class="small"><a href="../" aria-label="혼자 하기 첫 화면으로">← 혼자 하기로 돌아가기</a></p>
+  </section>
+  <!-- 설정·그림은 혼자 하기와 같은 파일을 씀 -->
+  <script src="../js/config.js"></script>
+  <script src="../js/scenes.js"></script>
+  <script src="js/file-guard.js"></script>
+  <script>
+    // 학교 이름·부캉이 그림(혼자 하기와 같은 config.js)
+    (function () {
+      var C = window.GAME_CONFIG || {};
+      document.querySelectorAll('[data-school]').forEach(function (el) { el.textContent = (C.schoolName || '') + ' · ' + (C.programName || ''); });
+      var hero = document.getElementById('heroChar');
+      hero.innerHTML = Scenes.character();
+      if (C.characterImage) { var im = new Image(); im.onload = function () { hero.innerHTML = '<img src="' + im.src + '" alt="부캉이">'; }; im.src = '../' + C.characterImage; }
+      // ?emu=1(테스트 모드)을 다음 화면에도 이어 붙임
+      if (location.search.indexOf('emu=1') >= 0) document.querySelectorAll('.menu a').forEach(function (a) { a.href += '?emu=1'; });
+    })();
+  </script>
+</body>
+</html>
