@@ -38,6 +38,13 @@ export const PLAYER_COLORS = B.playerColors && B.playerColors.length ? B.playerC
 export const PLACES = (C.places || []).map((p) => ({ ...p, photo: fromRoot(p.photo || '') }));
 export const ENDING = C.ending || { name: '바다', short: '바다', icon: '🌊' };
 
+const M = B.music || {};
+export const MUSIC = {
+  volume: typeof M.volume === 'number' ? M.volume : 0.35,
+  endingBoost: typeof M.endingBoost === 'number' ? M.endingBoost : 1.5,
+  tracks: Object.fromEntries(['lobby', 'play', 'cheer', 'ending'].map((k) => [k, fromRoot(M[k] || '')])),
+};
+
 export const NAME_MAX = B.nameMax || 6;
 export const PIN_FAIL_LIMIT = B.pinFailLimit || 5;
 export const PIN_LOCK_SEC = B.pinLockSec || 30;

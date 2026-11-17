@@ -11,10 +11,11 @@
 </head>
 <body class="tv">
   <div class="brand-badge" data-school>금곡초등학교 · GRIP</div>
+  <button type="button" id="btnSound" class="sound-fab" aria-label="소리 설정">🎵</button>
 
   <!-- 1. 방 만들기 -->
   <section data-screen="create" class="center-screen">
-    <h1 class="title">🦉 부캉이 구구단 <span>실시간 대결</span></h1>
+    <h1 class="title">🦈 부캉이 구구단 <span>실시간 대결</span></h1>
     <p class="lead">교실 TV에 이 화면을 띄우고 방을 만들어 주세요.</p>
     <div class="row gap">
       <button id="btnCreate" type="button" aria-label="새 방 만들기" class="btn big primary">방 만들기</button>
@@ -64,7 +65,6 @@
       <p class="hint" id="lobbyHint">학생 태블릿에서 주소에 들어가 방 번호를 입력해요.</p>
       <div id="lobbyList" class="lobby-list"></div>
       <div class="row gap end">
-        <button id="btnSound" type="button" aria-label="소리 켜기 끄기" class="btn small">🔊 소리 켬</button>
         <button id="btnClose" type="button" aria-label="방 닫기, 기록 모두 지우기" class="btn small danger">방 닫기</button>
       </div>
     </div>

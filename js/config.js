@@ -113,6 +113,16 @@ window.GAME_CONFIG = {
       '#5C6BC0', '#EC407A', '#C0CA33', '#29B6F6', '#7E57C2', '#FFA726', '#26A69A', '#EF5350',
       '#9CCC65', '#42A5F5', '#D4E157', '#BA68C8', '#FF8A65', '#4DB6AC', '#A1887F', '#78909C',
     ],
+    // 교실 TV 배경음악(학생 태블릿에서는 안 나옴). 파일이 아직 없는 곡은 대신 다른 곡이 나와요.
+    //   lobby: 대기 화면 / play: 게임 중 / cheer: 남은 친구 3명 이하(모두 도착 방식) / ending: 모두 도착 박수 엔딩(한 번)
+    music: {
+      volume: 0.35,      // 음악 크기(0~1). 효과음이 잘 들리도록 작게
+      endingBoost: 1.5,  // 엔딩 곡은 이 배수만큼 크게(0.35 × 1.5 ≈ 0.5)
+      lobby:  'assets/bgm/lobby.mp3',
+      play:   'assets/bgm/play.mp3',
+      cheer:  'assets/bgm/cheer.mp3',
+      ending: 'assets/bgm/ending.mp3',
+    },
     nameMax: 6,          // 별명 최대 글자 수
     pinFailLimit: 5,     // 비밀번호 연속 실패 허용 횟수
     pinLockSec: 30,      //   → 넘으면 기다리는 시간(초)

@@ -174,7 +174,7 @@ async function kickedOrClosed() {
   cleanup();
   notice('선생님이 내보냈어요. 다른 이름으로 다시 들어올 수 있어요.');
 }
-function closed() { cleanup(); notice('선생님이 방을 닫았어요. 고마워요! 🦉'); }
+function closed() { cleanup(); notice('선생님이 방을 닫았어요. 고마워요! 🦈'); }
 function cleanup() {
   unsubs.splice(0).forEach((u) => u());
   sessionStorage.removeItem(SS_SESSION);

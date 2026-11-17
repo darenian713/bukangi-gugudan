@@ -5,13 +5,14 @@ import {
 } from './fb-sdk.js';
 import {
   GAME_DEFAULTS, TEAM_PRESETS, PLAYER_COLORS, SCHOOL_MARK, ROOM_TTL_MS, NAME_MAX,
-  DAN_CHOICES, GOAL_OPTIONS, TIME_OPTIONS, CHARACTER_IMAGE, PLACES,
+  DAN_CHOICES, GOAL_OPTIONS, TIME_OPTIONS, CHARACTER_IMAGE, PLACES, MUSIC,
 } from './game-config.js';
 import {
   judge, nextQuestionPatch, assignTeams, smallestTeam, teamAverages, rankPlayers, rankTeams, teamMvp,
   isGameOver, accuracy, arrivalStatus,
 } from './referee.js';
 import { BusanMap } from './map-view.js';
+import { Bgm } from './bgm.js';
 import {
   $, show, escapeHtml, fromNameKey, toNameKey, normalizeName, charLength, charBadge, sfx, setSound, soundOn, imageExists,
 } from './common.js';
@@ -140,6 +141,7 @@ function roomClosed() {
   unsubRoom?.(); unsubRoom = null;
   localStorage.removeItem(LS_ROOM);
   code = null; room = null; prevPlayers = null; judged.clear();
+  bgm.want(null);
   const u = new URL(location.href); u.searchParams.delete('room'); history.replaceState(null, '', u);
   $('#btnResume').hidden = true;
   msg('방을 닫았어요. 방 데이터는 모두 지워졌어요.');
@@ -341,10 +343,37 @@ async function closeRoom() {
 $('#btnClose').onclick = closeRoom;
 $('#btnClose2').onclick = closeRoom;
 
-$('#btnSound').onclick = () => {
-  setSound(!soundOn);
-  $('#btnSound').textContent = soundOn ? '🔊 소리 켬' : '🔇 소리 끔';
+// 소리 버튼: 🎵 음악+효과음 → 🔊 효과음만 → 🔇 끔 (혼자 하기와 같은 순서, 이 TV에 저장)
+const bgm = new Bgm(MUSIC.tracks, MUSIC.volume, MUSIC.endingBoost);
+const SOUND_MODES = {
+  all: { icon: '🎵', label: '음악과 효과음 켜짐 (누르면 음악 끄기)', toast: '🎵 음악 + 효과음' },
+  sfx: { icon: '🔊', label: '효과음만 켜짐 (누르면 모두 끄기)', toast: '🔊 효과음만' },
+  off: { icon: '🔇', label: '소리 꺼짐 (누르면 모두 켜기)', toast: '🔇 소리 끔' },
 };
+function updateSoundBtn() {
+  const m = SOUND_MODES[bgm.mode];
+  setSound(bgm.mode !== 'off');
+  $('#btnSound').textContent = m.icon;
+  $('#btnSound').setAttribute('aria-label', m.label);
+  $('#btnSound').classList.toggle('off', bgm.mode === 'off');
+}
+updateSoundBtn();
+$('#btnSound').onclick = () => { bgm.cycleMode(); updateSoundBtn(); toast(SOUND_MODES[bgm.mode].toast); };
+
+/** 지금 화면에 맞는 배경음악 */
+function updateMusic(s) {
+  if (!room) { bgm.want(null); return; }
+  if (room.status === 'lobby') bgm.want('lobby');
+  else if (room.status === 'countdown') bgm.want('play');
+  else if (room.status === 'playing') {
+    const st = s.endRule === 'all' ? arrivalStatus(room) : null;
+    const lastFew = st && st.arrived > 0 && st.waiting.length > 0 && st.waiting.length <= 3;
+    bgm.want(lastFew ? 'cheer' : 'play');
+  } else if (room.status === 'finished') {
+    if (!$('#allDone').hidden) bgm.want('ending', { once: true, onEnded: () => bgm.want('lobby') });
+    else if (bgm.wanted !== 'ending') bgm.want('lobby');
+  }
+}
 
 // ───────────────────────── 설정 ─────────────────────────
 const dansBox = $('#dans');
@@ -469,6 +498,7 @@ function render() {
   else if (room.status === 'countdown' || room.status === 'playing') { show('play'); renderPlay(s); }
   else if (room.status === 'finished') { show('result'); renderResult(s); }
   if ($('#manageDlg').open) renderManage();
+  updateMusic(s);
 }
 
 let qrFor = null;
@@ -506,7 +536,7 @@ function renderLobby(s) {
   } else {
     box.className = 'lobby-list';
     box.innerHTML = list.map(([k, p]) => playerRow(k, p, { teamBtn: false })).join('') ||
-      '<p class="hint big-hint">친구들이 들어오면 여기에 이름이 나타나요 🦉</p>';
+      '<p class="hint big-hint">친구들이 들어오면 여기에 이름이 나타나요 🦈</p>';
   }
 }
 
@@ -658,7 +688,8 @@ function showAllDone() {
   celebrateQueue.length = 0;
   $('#celebrate').hidden = true;
   $('#allDone').hidden = false;
-  sfx.fanfare();
+  // 엔딩 곡이 있으면 곡이 축하를 맡고, 없으면 효과음 팡파르. 박수 소리는 항상
+  if (!bgm.canPlay('ending')) sfx.fanfare();
   setTimeout(() => sfx.clap(4.5), 700);
   clearTimeout(allDoneTimer);
   allDoneTimer = setTimeout(hideAllDone, 15000);
@@ -715,4 +746,4 @@ function toast(t) {
 }
 
 // 테스트·디버그용
-window.__host = { get room() { return room; }, get code() { return code; } };
+window.__host = { get room() { return room; }, get code() { return code; }, get bgm() { return bgm; } };

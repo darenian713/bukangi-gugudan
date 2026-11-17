@@ -228,3 +228,8 @@ body.tv { overflow: hidden; }
 @keyframes cheer { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-16px) rotate(4deg); } }
 .ad-confetti { position: absolute; inset: 0; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .ad-friend, .ab-cheer { animation: none; } }
+
+/* TV 소리 버튼(모든 화면 왼쪽 아래, 학교 이름 위) */
+.sound-fab { position: fixed; z-index: 31; left: calc(16px + env(safe-area-inset-left, 0px)); bottom: 58px; width: 56px; height: 56px;
+  border-radius: 50%; border: 3px solid #fff; background: rgba(255,255,255,.92); font-size: 26px; cursor: pointer; box-shadow: 0 3px 8px #0003; }
+.sound-fab.off { background: #ECEFF1; }
